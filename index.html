@@ -202,6 +202,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .ti-transport{background:#F5F3FF}
 .ti-accommodation{background:#F0FDF4}
 .ti-shopping{background:#FFFBEB}
+.ti-flight{background:#EFF6FF}
 .ti-other{background:#F8FAFC}
 
 /* Toast */
@@ -337,7 +338,10 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
       <div class="filter-row" id="filter-row">
         <button class="fbtn on" data-day="all" onclick="setFilter(this)">전체</button>
       </div>
-      <button class="fbtn" style="background:var(--p);color:#fff;border-color:var(--p)" onclick="locateMe()">내 위치</button>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="fbtn" id="poi-btn" onclick="togglePOI()">🌸 명소</button>
+        <button class="fbtn" style="background:var(--p);color:#fff;border-color:var(--p)" onclick="locateMe()">내 위치</button>
+      </div>
     </div>
     <div id="leafmap"></div>
     <div class="dist-panel"><div class="dist-inner" id="dist-panel"><div class="dist-empty">일정에 위치를 검색하면 경로와 거리가 표시됩니다.</div></div></div>
@@ -381,6 +385,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
         <button class="type-opt" data-t="transport" onclick="pickType(this)"><span class="ico">🚇</span>교통</button>
         <button class="type-opt" data-t="accommodation" onclick="pickType(this)"><span class="ico">🏨</span>숙소</button>
         <button class="type-opt" data-t="shopping" onclick="pickType(this)"><span class="ico">🛍️</span>쇼핑</button>
+        <button class="type-opt" data-t="flight" onclick="pickType(this)"><span class="ico">✈️</span>항공</button>
         <button class="type-opt" data-t="other" onclick="pickType(this)"><span class="ico">📌</span>기타</button>
       </div>
     </div>
@@ -546,10 +551,52 @@ let mapLayers=[], dayFilter='all';
 let editDayId=null, editActId=null, actType='attraction';
 let pendingLat=null, pendingLon=null;
 
-const TICON={attraction:'🏛️',food:'🍜',transport:'🚇',accommodation:'🏨',shopping:'🛍️',other:'📌'};
-const TNAME={attraction:'관광',food:'음식',transport:'교통',accommodation:'숙소',shopping:'쇼핑',other:'기타'};
+const TICON={attraction:'🏛️',food:'🍜',transport:'🚇',accommodation:'🏨',shopping:'🛍️',flight:'✈️',other:'📌'};
+const TNAME={attraction:'관광',food:'음식',transport:'교통',accommodation:'숙소',shopping:'쇼핑',flight:'항공',other:'기타'};
 const DCOLS=['#9575CD','#FFB300','#00ACC1','#E91E8C','#43A047','#FF7043','#1E88E5','#8E24AA'];
 const CQ=[29.5630,106.5516];
+
+/* ═══ 충칭 명소 POI ══════════════════════════════════════════ */
+const CQ_POI=[
+  {name:'홍야동 洪崖洞',cat:'관광',icon:'🏯',lat:29.5634,lon:106.5767},
+  {name:'해방비 解放碑',cat:'관광',icon:'🗿',lat:29.5575,lon:106.5738},
+  {name:'자기구 磁器口 고대마을',cat:'관광',icon:'🏘️',lat:29.5725,lon:106.5014},
+  {name:'인민대례당 人民大礼堂',cat:'관광',icon:'🏛️',lat:29.5541,lon:106.5523},
+  {name:'삼협박물관 三峡博物馆',cat:'관광',icon:'🏺',lat:29.5540,lon:106.5513},
+  {name:'양쯔강 케이블카 长江索道',cat:'관광',icon:'🚡',lat:29.5588,lon:106.5810},
+  {name:'충칭동물원 (판다)',cat:'관광',icon:'🐼',lat:29.5308,lon:106.5071},
+  {name:'남산 일봉수 전망대',cat:'관광',icon:'🌃',lat:29.5158,lon:106.5953},
+  {name:'대족석각 大足石刻',cat:'관광',icon:'⛩️',lat:29.7032,lon:105.7294},
+  {name:'무릉 천갱지봉 武隆天坑',cat:'관광',icon:'🏔️',lat:29.3240,lon:107.7607},
+  {name:'광양 빨간감 관광지',cat:'관광',icon:'🍂',lat:29.6680,lon:107.0628},
+  {name:'충칭 핫팟 거리 (파이팡)',cat:'맛집',icon:'🌶️',lat:29.5610,lon:106.5750},
+  {name:'해방비 먹자골목',cat:'맛집',icon:'🍜',lat:29.5572,lon:106.5752},
+  {name:'충칭 장베이 국제공항 T3A',cat:'공항',icon:'✈️',lat:29.7193,lon:106.6412},
+  {name:'충칭 장베이 국제공항 T3B',cat:'공항',icon:'✈️',lat:29.7234,lon:106.6565},
+  {name:'충칭북역 重庆北站 (고속철)',cat:'교통',icon:'🚄',lat:29.5951,lon:106.5318},
+  {name:'충칭서역 重庆西站',cat:'교통',icon:'🚉',lat:29.5215,lon:106.4649},
+  {name:'충칭역 重庆站 (남역)',cat:'교통',icon:'🚉',lat:29.5151,lon:106.5131},
+];
+let _poiVisible=false,_poiLayers=[];
+function togglePOI(){
+  if(!mainMap){toast('지도를 먼저 열어주세요','err');return;}
+  _poiVisible=!_poiVisible;
+  const btn=document.getElementById('poi-btn');
+  if(_poiVisible){
+    btn.style.cssText='background:var(--p);color:#fff;border-color:var(--p)';
+    CQ_POI.forEach(p=>{
+      const bg=p.cat==='공항'?'#6366F1':p.cat==='교통'?'#0EA5E9':p.cat==='맛집'?'#F59E0B':'#F472B6';
+      const icon=L.divIcon({className:'',html:`<div style="background:${bg};color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff">${p.icon}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
+      const m=L.marker([p.lat,p.lon],{icon}).addTo(mainMap);
+      m.bindPopup(`<b style="font-size:13px">${p.name}</b><br><span style="font-size:11px;color:#64748B">${p.cat}</span>`);
+      _poiLayers.push(m);
+    });
+    toast('명소·공항 '+CQ_POI.length+'곳 표시','ok');
+  }else{
+    btn.style.cssText='';
+    _poiLayers.forEach(l=>l.remove());_poiLayers=[];
+  }
+}
 
 /* ═══ localStorage 백업 ═══════════════════════════════════════ */
 function _lsKey(c){return 'trip_plan_v2_'+c;}
