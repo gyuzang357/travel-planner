@@ -11,14 +11,14 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --p:#6366F1;--p-lt:#EEF2FF;--p-dk:#4338CA;
-  --teal:#0D9488;--teal-lt:#F0FDFA;
+  --p:#F472B6;--p-lt:#FDF2F8;--p-dk:#DB2777;
+  --teal:#C084FC;--teal-lt:#F5F3FF;
   --rose:#F43F5E;--amber:#F59E0B;
-  --bg:#F5F6FB;--surface:#FFFFFF;
+  --bg:#FFF0F6;--surface:#FFFFFF;
   --text:#1E293B;--text2:#64748B;--text3:#94A3B8;--border:#E2E8F0;
   --r8:8px;--r12:12px;--r16:16px;--r20:20px;
-  --sh:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(99,102,241,.07);
-  --sh-sm:0 1px 3px rgba(0,0,0,.06);
+  --sh:0 1px 4px rgba(0,0,0,.05),0 4px 20px rgba(244,114,182,.10);
+  --sh-sm:0 1px 3px rgba(0,0,0,.05);
 }
 body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
 .screen{display:none}
@@ -26,13 +26,16 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 #home-screen.active{display:flex}
 
 /* HOME */
-#home-screen{background:linear-gradient(150deg,#6366F1 0%,#818CF8 55%,#A5B4FC 100%);align-items:center;justify-content:center;padding:24px}
+#home-screen{background:linear-gradient(150deg,#F472B6 0%,#F9A8D4 50%,#FBCFE8 100%);align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+#home-screen::before{content:'';position:absolute;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.13);top:-100px;right:-100px;pointer-events:none}
+#home-screen::after{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08);bottom:-60px;left:-70px;pointer-events:none}
+.home-box{position:relative;z-index:1}
 .home-box{width:100%;max-width:400px}
 .home-brand{text-align:center;color:#fff;margin-bottom:32px}
 .home-brand-icon{font-size:56px;display:block;margin-bottom:8px}
 .home-brand h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
 .home-brand p{font-size:13px;opacity:.85}
-.card{background:var(--surface);border-radius:var(--r20);padding:20px;box-shadow:0 8px 32px rgba(99,102,241,.18);margin-bottom:12px}
+.card{background:var(--surface);border-radius:var(--r20);padding:20px;box-shadow:0 8px 32px rgba(244,114,182,.22);margin-bottom:12px;border:1px solid rgba(255,255,255,.6)}
 .card h3{font-size:14px;font-weight:700;margin-bottom:4px}
 .card p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6}
 .row{display:flex;gap:8px}
@@ -40,7 +43,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .row input:focus{border-color:var(--p)}
 .home-tabs{display:flex;background:rgba(0,0,0,.18);border-radius:var(--r12);padding:3px;margin-bottom:16px}
 .home-tab-btn{flex:1;padding:9px;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:none;color:rgba(255,255,255,.65);transition:all .2s}
-.home-tab-btn.active{background:#fff;color:var(--p)}
+.home-tab-btn.active{background:#fff;color:#DB2777}
 .home-panel{display:none}
 .home-panel.active{display:block}
 .recent-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-radius:var(--r12);cursor:pointer;margin-bottom:8px;transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,.08)}
@@ -67,9 +70,9 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .tab-btn{flex:1;padding:10px;background:none;border:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
 .tab-btn.active{color:var(--p);border-bottom-color:var(--p)}
 .plan-body{padding:14px;max-width:800px;margin:0 auto;width:100%}
-.name-bar{display:none;align-items:center;gap:8px;background:#EEF2FF;padding:8px 14px;border-bottom:1px solid #C7D2FE;font-size:13px}
+.name-bar{display:none;align-items:center;gap:8px;background:#FDF2F8;padding:8px 14px;border-bottom:1px solid #FBCFE8;font-size:13px}
 .name-bar span{color:var(--p);font-weight:600;white-space:nowrap}
-.name-bar input{flex:1;max-width:160px;padding:6px 10px;border:1.5px solid #C7D2FE;border-radius:var(--r8);font-family:inherit;font-size:14px;outline:none}
+.name-bar input{flex:1;max-width:160px;padding:6px 10px;border:1.5px solid #FBCFE8;border-radius:var(--r8);font-family:inherit;font-size:14px;outline:none}
 .name-bar button{padding:6px 14px;background:var(--p);color:#fff;border:none;border-radius:var(--r8);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .presence-bar{display:flex;align-items:center;gap:6px;padding:2px 14px 8px;flex-wrap:wrap}
 .pu{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:20px;padding:3px 8px 3px 3px;font-size:11px;border:1px solid var(--border)}
@@ -78,9 +81,9 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .pu-ed{font-size:10px;color:var(--p);animation:blink .9s infinite}
 
 /* Budget */
-.budget-card{background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-radius:var(--r16);padding:14px 16px;margin-bottom:16px;border:1px solid #C7D2FE}
+.budget-card{background:linear-gradient(135deg,#FDF2F8,#FCE7F3);border-radius:var(--r16);padding:14px 16px;margin-bottom:16px;border:1px solid #FBCFE8}
 .budget-card h3{font-size:13px;font-weight:700;color:var(--p);margin-bottom:8px}
-.bc-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;border-bottom:1px solid rgba(99,102,241,.12)}
+.bc-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;border-bottom:1px solid rgba(244,114,182,.15)}
 .bc-row:last-child{border-bottom:none;font-weight:700;font-size:14px;color:var(--p-dk)}
 .days-wrap{display:flex;flex-direction:column;gap:12px}
 
@@ -93,7 +96,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .day-meta p{font-size:12px;color:var(--text2);margin-top:1px}
 .day-acts-btns{display:flex;gap:4px}
 .act-item{display:flex;align-items:flex-start;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);transition:background .1s}
-.act-item:hover{background:#FAFBFF}
+.act-item:hover{background:#FFF5F9}
 .act-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0;margin-top:2px}
 .act-icon-wrap{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .act-body{flex:1;min-width:0}
@@ -144,15 +147,15 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 /* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border:none;border-radius:var(--r12);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap}
 .btn-p{background:var(--p);color:#fff;width:100%}
-.btn-p:hover{background:var(--p-dk);transform:translateY(-1px)}
+.btn-p:hover{background:var(--p-dk);transform:translateY(-1px);box-shadow:0 6px 18px rgba(244,114,182,.35)}
 .btn-teal{background:var(--teal);color:#fff;width:100%}
-.btn-teal:hover{background:#0F766E;transform:translateY(-1px)}
+.btn-teal:hover{background:#A855F7;transform:translateY(-1px);box-shadow:0 6px 18px rgba(192,132,252,.35)}
 .btn-sm{padding:7px 13px;font-size:13px}
-.btn-ghost-hd{background:rgba(99,102,241,.12);color:var(--p);border:none;padding:7px 11px;border-radius:var(--r8);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}
-.btn-ghost-hd:hover{background:rgba(99,102,241,.2)}
+.btn-ghost-hd{background:rgba(244,114,182,.12);color:var(--p);border:none;padding:7px 11px;border-radius:var(--r8);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}
+.btn-ghost-hd:hover{background:rgba(244,114,182,.22)}
 .back-btn{background:var(--p-lt);color:var(--p);border:none;padding:8px 11px;border-radius:var(--r8);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px}
-.icon-btn{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;background:rgba(99,102,241,.1);color:var(--p)}
-.icon-btn:hover{background:rgba(99,102,241,.2)}
+.icon-btn{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;background:rgba(244,114,182,.1);color:var(--p)}
+.icon-btn:hover{background:rgba(244,114,182,.22)}
 .icon-btn.danger{background:rgba(244,63,94,.08);color:var(--rose)}
 .icon-btn.danger:hover{background:rgba(244,63,94,.15)}
 .txt-btn{background:none;border:none;padding:5px 8px;cursor:pointer;border-radius:6px;font-size:13px;transition:background .12s}
@@ -162,7 +165,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .fg{margin-bottom:13px}
 .fg label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:5px}
 .fg input,.fg textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--r12);font-family:inherit;font-size:16px;color:var(--text);background:#fff;outline:none;transition:border-color .2s;-webkit-appearance:none}
-.fg input:focus,.fg textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.fg input:focus,.fg textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(244,114,182,.12)}
 .fg textarea{resize:none;height:54px;font-size:14px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -172,7 +175,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .type-opt.sel{border-color:var(--p);background:var(--p-lt);color:var(--p)}
 .geo-row{display:flex;gap:8px}
 .geo-row input{flex:1}
-.geo-btn{padding:11px 13px;background:var(--p-lt);color:var(--p);border:1.5px solid #C7D2FE;border-radius:var(--r12);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .18s}
+.geo-btn{padding:11px 13px;background:var(--p-lt);color:var(--p);border:1.5px solid #FBCFE8;border-radius:var(--r12);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .18s}
 .geo-btn:hover{background:var(--p);color:#fff;border-color:var(--p)}
 .geo-msg{font-size:12px;margin-top:4px;min-height:15px}
 .geo-ok{color:var(--teal)}
@@ -194,9 +197,9 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .qr-wrap{display:flex;justify-content:center;padding:14px 0}
 
 /* Activity type bg */
-.ti-attraction{background:#EEF2FF}
+.ti-attraction{background:#FDF2F8}
 .ti-food{background:#FFF1F2}
-.ti-transport{background:#EFF6FF}
+.ti-transport{background:#F5F3FF}
 .ti-accommodation{background:#F0FDF4}
 .ti-shopping{background:#FFFBEB}
 .ti-other{background:#F8FAFC}
@@ -204,8 +207,25 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 /* Toast */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;padding:10px 20px;border-radius:100px;font-family:inherit;font-size:13px;font-weight:600;z-index:9999;transition:transform .25s ease;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.18);pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.toast.ok{background:var(--teal)}
+.toast.ok{background:linear-gradient(135deg,#C084FC,#A855F7)}
 .toast.err{background:var(--rose)}
+
+/* PIN screen */
+#pin-screen{position:fixed;inset:0;background:linear-gradient(150deg,#F472B6 0%,#F9A8D4 50%,#FBCFE8 100%);display:flex;align-items:center;justify-content:center;z-index:99999;padding:24px}
+#pin-screen::before{content:'';position:absolute;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.13);top:-100px;right:-100px}
+#pin-screen::after{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08);bottom:-60px;left:-70px}
+.pin-box{background:#fff;border-radius:28px;padding:36px 28px;max-width:340px;width:100%;box-shadow:0 16px 48px rgba(244,114,182,.3);text-align:center;position:relative;z-index:1}
+.pin-icon{font-size:48px;display:block;margin-bottom:12px}
+.pin-box h2{font-size:20px;font-weight:800;margin-bottom:6px;color:#1E293B}
+.pin-box p{font-size:13px;color:#64748B;margin-bottom:24px;line-height:1.6}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#E2E8F0;transition:all .2s}
+.pin-dot.filled{background:linear-gradient(135deg,#F472B6,#DB2777)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto}
+.pin-key{width:100%;aspect-ratio:1;border:none;border-radius:16px;font-family:inherit;font-size:22px;font-weight:700;cursor:pointer;background:#FFF0F6;color:#1E293B;transition:all .15s}
+.pin-key:active{background:#FBCFE8;transform:scale(.93)}
+.pin-key.del{font-size:16px;background:#F8FAFC;color:#64748B}
+.pin-err{color:#F43F5E;font-size:13px;font-weight:600;min-height:20px;margin-top:8px;animation:shake .3s ease}
 
 /* Setup guide */
 .setup-step{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -395,10 +415,76 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
   </div>
 </div>
 
+<!-- PIN LOCK -->
+<div id="pin-screen">
+  <div class="pin-box">
+    <span class="pin-icon">🌸</span>
+    <h2>여행 플래너</h2>
+    <p>PIN을 입력해주세요</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <div></div>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-err" id="pin-err"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 'use strict';
+
+/* ═══ PIN 잠금 ════════════════════════════════════════════════ */
+const ACCESS_PIN='1234';
+let _pinVal='';
+(function(){
+  if(sessionStorage.getItem('pin_ok')==='1'){
+    document.getElementById('pin-screen').style.display='none';
+  }
+})();
+function _pinRefresh(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(d)d.className='pin-dot'+(i<_pinVal.length?' filled':'');
+  }
+}
+function pinKey(k){
+  if(_pinVal.length>=4)return;
+  _pinVal+=k;_pinRefresh();
+  document.getElementById('pin-err').textContent='';
+  if(_pinVal.length===4){
+    if(_pinVal===ACCESS_PIN){
+      sessionStorage.setItem('pin_ok','1');
+      const ps=document.getElementById('pin-screen');
+      ps.style.transition='opacity .4s';ps.style.opacity='0';
+      setTimeout(()=>ps.style.display='none',400);
+    }else{
+      document.getElementById('pin-err').textContent='PIN이 맞지 않아요';
+      _pinVal='';_pinRefresh();
+    }
+  }
+}
+function pinDel(){
+  if(_pinVal.length===0)return;
+  _pinVal=_pinVal.slice(0,-1);_pinRefresh();
+  document.getElementById('pin-err').textContent='';
+}
 
 /* ═══ GitHub Contents API 백엔드 ═══════════════════════════════ */
 const _GH={
