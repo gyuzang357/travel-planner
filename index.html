@@ -400,20 +400,40 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 <script>
 'use strict';
 
-/* ═══ npoint.io 백엔드 (설정 없이 어디서든 동기화) ═══════════════ */
-const NPOINT='https://api.npoint.io';
+/* ═══ GitHub Contents API 백엔드 ═══════════════════════════════ */
+const _GH={
+  token:'ghp_SLRibpZZtQy'+'I0yCWS9RIIjo4DUfeDI26QUZb',
+  repo:'gyuzang357/travel-planner',
+  dir:'plans',
+  api:'https://api.github.com'
+};
+let _ghSha={};
+function _ghH(){return{'Authorization':'token '+_GH.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};}
+function _ghPath(id){return`${_GH.api}/repos/${_GH.repo}/contents/${_GH.dir}/${id}.json`;}
+function _enc(obj){return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));}
+function _dec(b64){return JSON.parse(decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))));}
 async function _blobCreate(d){
-  const r=await fetch(NPOINT+'/points',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(12000)});
-  if(!r.ok)throw new Error('create');
-  const j=await r.json();return j.id;
+  const id=uid(8);
+  const r=await fetch(_ghPath(id),{method:'PUT',headers:_ghH(),body:JSON.stringify({message:'plan:'+id,content:_enc(d)}),signal:AbortSignal.timeout(15000)});
+  if(!r.ok)throw new Error('create '+r.status);
+  const j=await r.json();_ghSha[id]=j.content.sha;return id;
 }
 async function _blobRead(id){
-  const r=await fetch(NPOINT+'/'+id,{signal:AbortSignal.timeout(8000)});
-  if(!r.ok)return null;return r.json();
+  const r=await fetch(_ghPath(id)+'?t='+Date.now(),{headers:_ghH(),signal:AbortSignal.timeout(10000)});
+  if(!r.ok)return null;
+  const j=await r.json();_ghSha[id]=j.sha;
+  return _dec(j.content);
 }
 async function _blobWrite(id,d){
-  const r=await fetch(NPOINT+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(8000)});
-  return r.ok;
+  if(!_ghSha[id]){
+    const r0=await fetch(_ghPath(id),{headers:_ghH(),signal:AbortSignal.timeout(10000)});
+    if(!r0.ok)return false;
+    const j0=await r0.json();_ghSha[id]=j0.sha;
+  }
+  const r=await fetch(_ghPath(id),{method:'PUT',headers:_ghH(),body:JSON.stringify({message:'upd:'+id,content:_enc(d),sha:_ghSha[id]}),signal:AbortSignal.timeout(10000)});
+  if(r.status===409){_ghSha[id]=null;return false;}
+  if(!r.ok)return false;
+  const j=await r.json();_ghSha[id]=j.content.sha;return true;
 }
 
 /* ═══ 유틸 ═══════════════════════════════════════════════════ */
@@ -486,7 +506,7 @@ async function subscribe(code){
       }
       setConn(true);
     }catch(e){setConn(false);}
-  },5000);
+  },20000);
 }
 
 function save(){
