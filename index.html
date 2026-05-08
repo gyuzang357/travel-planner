@@ -400,19 +400,19 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 <script>
 'use strict';
 
-/* ═══ JSONBlob 백엔드 (설정 없이 어디서든 동기화) ═══════════════ */
-const BLOB_API='https://jsonblob.com/api/jsonBlob';
+/* ═══ npoint.io 백엔드 (설정 없이 어디서든 동기화) ═══════════════ */
+const NPOINT='https://api.npoint.io';
 async function _blobCreate(d){
-  const r=await fetch(BLOB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(12000)});
+  const r=await fetch(NPOINT+'/points',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(12000)});
   if(!r.ok)throw new Error('create');
-  return r.headers.get('Location').split('/').pop();
+  const j=await r.json();return j.id;
 }
 async function _blobRead(id){
-  const r=await fetch(BLOB_API+'/'+id,{signal:AbortSignal.timeout(8000)});
+  const r=await fetch(NPOINT+'/'+id,{signal:AbortSignal.timeout(8000)});
   if(!r.ok)return null;return r.json();
 }
 async function _blobWrite(id,d){
-  const r=await fetch(BLOB_API+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(8000)});
+  const r=await fetch(NPOINT+'/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),signal:AbortSignal.timeout(8000)});
   return r.ok;
 }
 
