@@ -180,6 +180,15 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .geo-msg{font-size:12px;margin-top:4px;min-height:15px}
 .geo-ok{color:var(--teal)}
 .geo-err{color:var(--rose)}
+.poi-cat-btn{padding:4px 10px;border:1.5px solid var(--border);border-radius:20px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);white-space:nowrap;transition:all .15s;flex-shrink:0}
+.poi-cat-btn.active{background:var(--p);border-color:var(--p);color:#fff}
+.poi-chip{padding:5px 10px;border:1.5px solid #FBCFE8;border-radius:20px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;background:var(--p-lt);color:var(--p-dk);white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:3px}
+.poi-chip:hover,.poi-chip:active{background:var(--p);color:#fff;border-color:var(--p)}
+.poi-picker-wrap{margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:var(--r12);border:1px solid #FBCFE8}
+.poi-picker-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:7px;letter-spacing:.5px}
+.poi-cat-row{display:flex;gap:5px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+.poi-cat-row::-webkit-scrollbar{display:none}
+.poi-chip-row{display:flex;flex-wrap:wrap;gap:5px;max-height:110px;overflow-y:auto}
 #mini-map-wrap{border-radius:var(--r12);overflow:hidden;border:1.5px solid var(--border);display:none;margin-top:6px}
 #mini-map{height:180px}
 .mini-hint{font-size:11px;color:var(--text3);padding:4px 10px;background:var(--bg);text-align:center}
@@ -395,12 +404,23 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
       <div class="fg"><label>예상 비용 (원)</label><input id="a-cost" type="number" min="0" placeholder="0"></div>
     </div>
     <div class="fg">
-      <label>위치 <span style="font-weight:400;color:var(--text3)">— 검색하면 지도에 표시</span></label>
+      <label>위치 <span style="font-weight:400;color:var(--text3)">— 입력하면 자동 검색 · 한자/영어 그대로 OK</span></label>
       <div class="geo-row">
-        <input id="a-loc" placeholder="예: 홍야동 · 解放碑 · 29.5630,106.5516">
+        <input id="a-loc" placeholder="예: 洪崖洞 · Hongyadong · 해방비 · 29.563,106.577" oninput="autoGeo(this.value)">
         <button class="geo-btn" id="btn-geo" onclick="searchGeo()">검색</button>
       </div>
       <div class="geo-msg" id="geo-msg"></div>
+      <div class="poi-picker-wrap">
+        <div class="poi-picker-label">충칭 추천 장소</div>
+        <div class="poi-cat-row">
+          <button class="poi-cat-btn active" onclick="filterPoiCat(this,'전체')">전체</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'관광')">🏛️ 관광</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'맛집')">🌶️ 맛집</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'공항')">✈️ 공항</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'교통')">🚄 교통</button>
+        </div>
+        <div class="poi-chip-row" id="poi-chips"></div>
+      </div>
     </div>
     <div id="mini-map-wrap"><div id="mini-map"></div><div class="mini-hint">지도 클릭 → 핀 위치 설정 &nbsp;·&nbsp; 드래그로 이동</div></div>
     <div class="fg"><label>메모</label><input id="a-note" placeholder="예: 입장권 미리 예매 필요"></div>
@@ -577,7 +597,24 @@ const CQ_POI=[
   {name:'충칭서역 重庆西站',cat:'교통',icon:'🚉',lat:29.5215,lon:106.4649},
   {name:'충칭역 重庆站 (남역)',cat:'교통',icon:'🚉',lat:29.5151,lon:106.5131},
 ];
-let _poiVisible=false,_poiLayers=[];
+let _poiVisible=false,_poiLayers=[],_poiCat='전체';
+const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport'};
+function filterPoiCat(btn,cat){
+  document.querySelectorAll('.poi-cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');_poiCat=cat;renderPoiChips();
+}
+function renderPoiChips(){
+  const el=document.getElementById('poi-chips');if(!el)return;
+  const list=_poiCat==='전체'?CQ_POI:CQ_POI.filter(p=>p.cat===_poiCat);
+  el.innerHTML=list.map((_,i)=>{const p=CQ_POI.indexOf(list[i])!==-1?list[i]:null;if(!p)return'';const gi=CQ_POI.indexOf(p);return`<button class="poi-chip" onclick="pickPOI(${gi})">${p.icon} ${p.name}</button>`;}).join('');
+}
+function pickPOI(idx){
+  const p=CQ_POI[idx];if(!p)return;
+  document.getElementById('a-loc').value=p.name;
+  const t=_poiTypeMap[p.cat];
+  if(t){document.querySelectorAll('.type-opt').forEach(b=>b.classList.toggle('sel',b.dataset.t===t));actType=t;}
+  _applyGeo(p.lat,p.lon,p.name,'✓ '+p.name);
+}
 function togglePOI(){
   if(!mainMap){toast('지도를 먼저 열어주세요','err');return;}
   _poiVisible=!_poiVisible;
@@ -813,7 +850,10 @@ function openActModal(did,aid){
   if(a){actType=a.type||'attraction';if(a.lat!=null){pendingLat=a.lat;pendingLon=a.lon;}}
   document.querySelectorAll('.type-opt').forEach(b=>b.classList.toggle('sel',b.dataset.t===actType));
   _editing=true;
+  _poiCat='전체';
+  document.querySelectorAll('.poi-cat-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
   openModal('m-act');
+  renderPoiChips();
   setTimeout(()=>{initMiniMap();if(pendingLat!=null){document.getElementById('mini-map-wrap').style.display='block';updMiniMap(pendingLat,pendingLon,a?.location||'');}},200);
 }
 function pickType(btn){document.querySelectorAll('.type-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');actType=btn.dataset.t;}
@@ -1027,16 +1067,17 @@ function renderMap(){
 
 /* ═══ 지오코딩 ═══════════════════════════════════════════════ */
 const _delay=ms=>new Promise(r=>setTimeout(r,ms));
-async function _nominatim(q){
+async function _nominatim(q,bounded=0){
   try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=3&accept-language=zh-CN,zh,ko,en&viewbox=105.5,30.5,107.5,28.5&bounded=0`,{signal:AbortSignal.timeout(6000)});
+    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&accept-language=zh-CN,zh,ko,en&viewbox=105.2,30.8,107.8,28.2&bounded=${bounded}&countrycodes=cn`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(7000)});
     const d=await r.json();
     if(d.length) return {lat:parseFloat(d[0].lat),lon:parseFloat(d[0].lon),name:d[0].display_name};
   }catch(e){}return null;
 }
 async function _photon(q){
   try{
-    const r=await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=3&lat=29.5630&lon=106.5516`,{signal:AbortSignal.timeout(6000)});
+    const r=await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=29.5630&lon=106.5516&lang=zh`,{signal:AbortSignal.timeout(7000)});
     const d=await r.json();
     if(d.features?.length){const [lo,la]=d.features[0].geometry.coordinates;const p=d.features[0].properties;return {lat:la,lon:lo,name:[p.name,p.city,p.country].filter(Boolean).join(', ')};}
   }catch(e){}return null;
@@ -1052,20 +1093,18 @@ async function searchGeo(){
   btn.textContent='검색 중…';btn.style.opacity='.6';
   msg.textContent='';msg.className='geo-msg';
   let found=null;
-  const hasChinese=/[一-鿿]/.test(raw);
+  // 1) 원문 그대로 검색 (한자·영어 상관없이)
+  found=await _nominatim(raw);
+  // 2) 실패 시 Photon으로 재시도 (원문)
+  if(!found){await _delay(400);found=await _photon(raw);}
+  // 3) 충칭 컨텍스트 추가해서 재시도
   const hasCQ=/충칭|重庆|chongqing/i.test(raw);
-  if(hasChinese){
-    found=await _nominatim(raw);
-    if(!found){await _delay(600);found=await _photon(raw);}
-    if(!found&&!hasCQ){await _delay(600);found=await _nominatim(raw+' 重庆');}
-  } else {
-    found=await _nominatim(hasCQ?raw:raw+' Chongqing');
-    if(!found){await _delay(600);found=await _photon(hasCQ?raw:raw+' Chongqing');}
-    if(!found){await _delay(600);found=await _nominatim(raw);}
-  }
+  if(!found&&!hasCQ){await _delay(400);found=await _nominatim(raw+' 重庆 Chongqing');}
+  // 4) 전국 범위로 확장 재시도
+  if(!found){await _delay(400);found=await _nominatim(raw,0);}
   btn.textContent='검색';btn.style.opacity='1';
   if(!found){
-    msg.innerHTML='위치를 찾지 못했어요.<br><b>지도를 직접 클릭</b>해서 핀을 설정하거나<br>좌표로 입력하세요 (예: <b>29.5630, 106.5516</b>)';
+    msg.innerHTML='위치를 찾지 못했어요. 아래 지도를 직접 클릭해 핀을 설정하거나 <b>좌표</b>로 입력하세요<br><span style="color:var(--text3);font-size:11px">예: 29.5630, 106.5516</span>';
     msg.className='geo-msg geo-err';
     document.getElementById('mini-map-wrap').style.display='block';initMiniMap();return;
   }
@@ -1081,6 +1120,15 @@ async function searchGeo(){
 })();
 
 document.getElementById('join-input').addEventListener('keydown',e=>{if(e.key==='Enter')joinByCode();});
+
+/* 위치 자동 검색 (1.5초 디바운스) */
+let _geoTimer=null;
+function autoGeo(val){
+  clearTimeout(_geoTimer);
+  const v=val.trim();
+  if(v.length<2)return;
+  _geoTimer=setTimeout(()=>searchGeo(),1500);
+}
 </script>
 </body>
 </html>
