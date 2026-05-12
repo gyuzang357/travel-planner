@@ -418,6 +418,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'맛집')">🌶️ 맛집</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'공항')">✈️ 공항</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'교통')">🚄 교통</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'숙소')">🏨 숙소</button>
         </div>
         <div class="poi-chip-row" id="poi-chips"></div>
       </div>
@@ -596,9 +597,10 @@ const CQ_POI=[
   {name:'충칭북역 重庆北站 (고속철)',cat:'교통',icon:'🚄',lat:29.5951,lon:106.5318},
   {name:'충칭서역 重庆西站',cat:'교통',icon:'🚉',lat:29.5215,lon:106.4649},
   {name:'충칭역 重庆站 (남역)',cat:'교통',icon:'🚉',lat:29.5151,lon:106.5131},
+  {name:'TheMove江景酒店 (解放碑·洪崖洞)',cat:'숙소',icon:'🏨',lat:29.5589,lon:106.5758},
 ];
 let _poiVisible=false,_poiLayers=[],_poiCat='전체';
-const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport'};
+const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation'};
 function filterPoiCat(btn,cat){
   document.querySelectorAll('.poi-cat-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');_poiCat=cat;renderPoiChips();
