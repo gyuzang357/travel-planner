@@ -610,7 +610,10 @@ function filterPoiCat(btn,cat){
 function renderPoiChips(){
   const el=document.getElementById('poi-chips');if(!el)return;
   const list=_poiCat==='전체'?CQ_POI:CQ_POI.filter(p=>p.cat===_poiCat);
-  el.innerHTML=list.map((_,i)=>{const p=CQ_POI.indexOf(list[i])!==-1?list[i]:null;if(!p)return'';const gi=CQ_POI.indexOf(p);return`<button class="poi-chip" onclick="pickPOI(${gi})">${p.icon} ${p.name}</button>`;}).join('');
+  el.innerHTML=list.map((p,gi_unused)=>{
+    const gi=CQ_POI.findIndex(x=>x===p);
+    return`<button class="poi-chip" onclick="pickPOI(${gi})">${p.icon} ${p.name}</button>`;
+  }).join('');
 }
 function pickPOI(idx){
   const p=CQ_POI[idx];if(!p)return;
