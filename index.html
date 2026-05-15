@@ -419,6 +419,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'공항')">✈️ 공항</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'교통')">🚄 교통</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'숙소')">🏨 숙소</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'기타')">📌 기타</button>
         </div>
         <div class="poi-chip-row" id="poi-chips"></div>
       </div>
@@ -594,6 +595,10 @@ const CQ_POI=[
   {name:'해방비 먹자골목',cat:'맛집',icon:'🍜',lat:29.5572,lon:106.5752},
   {name:'十八梯邓凳面 (八一路店)',cat:'맛집',icon:'🍜',lat:29.5590,lon:106.5738},
   {name:'十八梯邓凳面 (总店)',cat:'맛집',icon:'🍜',lat:29.5547,lon:106.5693},
+  {name:'的dede',cat:'맛집',icon:'☕',lat:29.5596,lon:106.5718},
+  {name:'重庆大韩民国临时政府旧址陈列馆',cat:'관광',icon:'🇰🇷',lat:29.5586,lon:106.5658},
+  {name:'北星印象足疗SPA会馆',cat:'기타',icon:'💆',lat:29.5596,lon:106.5714},
+  {name:'青年路7号 时代豪苑擎天阁D座',cat:'기타',icon:'🏢',lat:29.5596,lon:106.5714},
   {name:'충칭 장베이 국제공항 T3A',cat:'공항',icon:'✈️',lat:29.7193,lon:106.6412},
   {name:'충칭 장베이 국제공항 T3B',cat:'공항',icon:'✈️',lat:29.7234,lon:106.6565},
   {name:'충칭북역 重庆北站 (고속철)',cat:'교통',icon:'🚄',lat:29.5951,lon:106.5318},
@@ -602,7 +607,7 @@ const CQ_POI=[
   {name:'TheMove江景酒店 (解放碑·洪崖洞)',cat:'숙소',icon:'🏨',lat:29.5589,lon:106.5758},
 ];
 let _poiVisible=false,_poiLayers=[],_poiCat='전체';
-const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation'};
+const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation',기타:'other'};
 function filterPoiCat(btn,cat){
   document.querySelectorAll('.poi-cat-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');_poiCat=cat;renderPoiChips();
