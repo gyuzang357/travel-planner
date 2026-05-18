@@ -419,6 +419,8 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'공항')">✈️ 공항</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'교통')">🚄 교통</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'숙소')">🏨 숙소</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'클럽')">🎉 클럽</button>
+          <button class="poi-cat-btn" onclick="filterPoiCat(this,'기타')">📍 기타</button>
           <button class="poi-cat-btn" onclick="filterPoiCat(this,'기타')">📌 기타</button>
         </div>
         <div class="poi-chip-row" id="poi-chips"></div>
@@ -605,9 +607,16 @@ const CQ_POI=[
   {name:'충칭서역 重庆西站',cat:'교통',icon:'🚉',lat:29.5215,lon:106.4649},
   {name:'충칭역 重庆站 (남역)',cat:'교통',icon:'🚉',lat:29.5151,lon:106.5131},
   {name:'TheMove江景酒店 (解放碑·洪崖洞)',cat:'숙소',icon:'🏨',lat:29.5589,lon:106.5758},
+  {name:'重庆大韩民国临时政府旧址陈列馆',cat:'관광',icon:'🏛️',lat:29.5586,lon:106.5658},
+  {name:'青年路7号 时代豪苑 擎天阁D座',cat:'기타',icon:'🏢',lat:29.5596,lon:106.5714},
+  {name:'ESMI NIGHT CLUB (江北店)',cat:'클럽',icon:'🎉',lat:29.5808,lon:106.5299},
+  {name:'Orangutan Bunker (한국노래🇰🇷)',cat:'클럽',icon:'🦧',lat:29.5808,lon:106.5302},
+  {name:'TEETHGOLD',cat:'클럽',icon:'🪩',lat:29.5808,lon:106.5295},
+  {name:'S·DNA LIVE CLUB',cat:'클럽',icon:'🎵',lat:29.5614,lon:106.5326},
+  {name:'BOOMSHAKE',cat:'클럽',icon:'💥',lat:29.5808,lon:106.5298},
 ];
 let _poiVisible=false,_poiLayers=[],_poiCat='전체';
-const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation',기타:'other'};
+const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation',클럽:'other',기타:'other'};
 function filterPoiCat(btn,cat){
   document.querySelectorAll('.poi-cat-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');_poiCat=cat;renderPoiChips();
