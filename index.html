@@ -109,6 +109,10 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .act-gap{display:flex;align-items:center;gap:8px;padding:2px 14px}
 .act-gap-line{flex:1;border-top:1.5px dashed}
 .act-gap-dist{font-size:11px;font-weight:700;white-space:nowrap;padding:2px 10px;border-radius:20px;border:1px solid;background:var(--surface)}
+.dist-mode-bar{display:flex;gap:5px;padding:7px 14px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.dist-mode-bar::-webkit-scrollbar{display:none}
+.dmb{padding:4px 12px;border:1.5px solid var(--border);border-radius:20px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--text2);white-space:nowrap;transition:all .15s}
+.dmb.on{background:var(--p);border-color:var(--p);color:#fff}
 .order-btn{background:rgba(148,163,184,.1);color:var(--text3)}
 .order-btn:hover{background:rgba(148,163,184,.25);color:var(--text2)}
 .invisible{visibility:hidden;pointer-events:none}
@@ -329,6 +333,12 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
     <div class="tab-bar">
       <button class="tab-btn active" data-t="sched" onclick="switchTab(this)">일정</button>
       <button class="tab-btn" data-t="map" onclick="switchTab(this)">지도 &amp; 경로</button>
+    </div>
+    <div class="dist-mode-bar">
+      <button class="dmb on" onclick="setDistMode(this,'km')">📍 거리</button>
+      <button class="dmb" onclick="setDistMode(this,'walk')">🚶 도보</button>
+      <button class="dmb" onclick="setDistMode(this,'taxi')">🚕 택시</button>
+      <button class="dmb" onclick="setDistMode(this,'transit')">🚇 대중교통</button>
     </div>
   </div>
   <div class="plan-body" id="plan-body">
@@ -556,6 +566,19 @@ function uid(n=8){return Array.from({length:n},()=>'ABCDEFGHIJKLMNOPQRSTUVWXYZ01
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtDate(d){if(!d)return '';const dt=new Date(d+'T00:00:00');return `${dt.getMonth()+1}/${dt.getDate()}(${'일월화수목금토'[dt.getDay()]})`;}
 function fmtDist(km){const m=km*1000;if(m<1000)return Math.round(m)+'m';if(km<1000)return km.toFixed(1)+'km';return Math.round(km).toLocaleString()+'km';}
+let distMode='km';
+function setDistMode(btn,mode){
+  document.querySelectorAll('.dmb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');distMode=mode;
+  renderAll();
+  if(document.getElementById('map-view').classList.contains('show'))renderMap();
+}
+function fmtMode(km){
+  if(distMode==='walk'){const t=Math.round(km/4*60);return t<60?`🚶 ${t}분`:`🚶 ${Math.floor(t/60)}시간 ${t%60?t%60+'분':''}`;}
+  if(distMode==='taxi'){const t=Math.max(1,Math.round(km/25*60));return `🚕 ${t}분`;}
+  if(distMode==='transit'){const t=Math.max(1,Math.round(km/20*60));return `🚇 ${t}분`;}
+  return '📍 '+fmtDist(km);
+}
 function hav(la1,lo1,la2,lo2){const R=6371,r=Math.PI/180;const a=Math.sin((la2-la1)*r/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin((lo2-lo1)*r/2)**2;return R*2*Math.asin(Math.sqrt(a));}
 function toast(msg,cls=''){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+cls;clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',3000);}
 function schedRender(){clearTimeout(renderT);renderT=setTimeout(renderAll,120);}
@@ -942,7 +965,7 @@ function buildDayCard(did,day,num,idx){
         const [,next]=acts[i+1];
         if(a.lat!=null&&next.lat!=null){
           const km=hav(a.lat,a.lon,next.lat,next.lon);
-          actsHTML+=`<div class="act-gap"><div class="act-gap-line" style="border-color:${color}40"></div><div class="act-gap-dist" style="color:${color};border-color:${color}40">📍 ${fmtDist(km)}</div><div class="act-gap-line" style="border-color:${color}40"></div></div>`;
+          actsHTML+=`<div class="act-gap"><div class="act-gap-line" style="border-color:${color}40"></div><div class="act-gap-dist" style="color:${color};border-color:${color}40">${fmtMode(km)}</div><div class="act-gap-line" style="border-color:${color}40"></div></div>`;
         } else {
           actsHTML+='<div class="act-sep"></div>';
         }
@@ -1078,7 +1101,7 @@ function renderMap(){
     for(let i=0;i<acts.length-1;i++){
       const [,a1]=acts[i],[,a2]=acts[i+1];
       const km=hav(a1.lat,a1.lon,a2.lat,a2.lon);dayTotal+=km;
-      distHTML+=`<div class="dist-row"><span>${esc(a1.name)} → ${esc(a2.name)}</span><span class="dist-km">${fmtDist(km)}</span></div>`;
+      distHTML+=`<div class="dist-row"><span>${esc(a1.name)} → ${esc(a2.name)}</span><span class="dist-km">${fmtMode(km)}</span></div>`;
     }
     if(acts.length>1) distHTML+=`<div class="dist-total">총 이동: ${fmtDist(dayTotal)}</div>`;
     distHTML+='</div>';
