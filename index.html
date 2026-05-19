@@ -317,7 +317,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
       </button>
       <h1 id="ph-title">여행 플래너</h1>
       <button class="btn-ghost-hd" onclick="openInviteModal()">초대 🔗</button>
-      <button class="btn-ghost-hd btn-sm" onclick="openModal('m-plan')">수정</button>
+      <button class="btn-ghost-hd btn-sm" onclick="openPlanModal()">수정</button>
     </div>
     <div class="ph-meta">
       <span><div class="cdot off" id="plan-dot" style="display:inline-block;margin-right:4px;vertical-align:middle"></div><span id="plan-status">연결 중…</span></span>
@@ -372,6 +372,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
   <div class="modal">
     <div class="modal-header"><h2>여행 정보 수정</h2><button class="modal-close" onclick="closeModal('m-plan')">✕</button></div>
     <div class="fg"><label>여행 이름</label><input id="ep-name"></div>
+    <div class="fg"><label>여행지 (도시명)</label><input id="ep-dest" placeholder="예: 도쿄, 파리, 방콕, 重庆"></div>
     <div class="fg"><label>여행 설명</label><input id="ep-desc"></div>
     <div class="two-col">
       <div class="fg"><label>출발일</label><input id="ep-start" type="date"></div>
@@ -644,6 +645,7 @@ const CQ_POI=[
   {name:'BOOMSHAKE',cat:'클럽',icon:'💥',lat:29.5808,lon:106.5298},
 ];
 let _poiVisible=false,_poiLayers=[],_poiCat='전체';
+let _activePOI=[...CQ_POI],_destCenter=[...CQ],_lastPoiDest=null;
 const _poiTypeMap={관광:'attraction',맛집:'food',공항:'flight',교통:'transport',숙소:'accommodation',클럽:'other',기타:'other'};
 function filterPoiCat(btn,cat){
   document.querySelectorAll('.poi-cat-btn').forEach(b=>b.classList.remove('active'));
@@ -651,14 +653,15 @@ function filterPoiCat(btn,cat){
 }
 function renderPoiChips(){
   const el=document.getElementById('poi-chips');if(!el)return;
-  const list=_poiCat==='전체'?CQ_POI:CQ_POI.filter(p=>p.cat===_poiCat);
-  el.innerHTML=list.map((p,gi_unused)=>{
-    const gi=CQ_POI.findIndex(x=>x===p);
+  const list=_poiCat==='전체'?_activePOI:_activePOI.filter(p=>p.cat===_poiCat);
+  if(!list.length){el.innerHTML='<span style="font-size:12px;color:var(--text2);padding:4px 8px">해당 카테고리 없음</span>';return;}
+  el.innerHTML=list.map((p)=>{
+    const gi=_activePOI.findIndex(x=>x===p);
     return`<button class="poi-chip" onclick="pickPOI(${gi})">${p.icon} ${p.name}</button>`;
   }).join('');
 }
 function pickPOI(idx){
-  const p=CQ_POI[idx];if(!p)return;
+  const p=_activePOI[idx];if(!p)return;
   document.getElementById('a-loc').value=p.name;
   const t=_poiTypeMap[p.cat];
   if(t){document.querySelectorAll('.type-opt').forEach(b=>b.classList.toggle('sel',b.dataset.t===t));actType=t;}
@@ -670,18 +673,78 @@ function togglePOI(){
   const btn=document.getElementById('poi-btn');
   if(_poiVisible){
     btn.style.cssText='background:var(--p);color:#fff;border-color:var(--p)';
-    CQ_POI.forEach(p=>{
+    _activePOI.forEach(p=>{
       const bg=p.cat==='공항'?'#6366F1':p.cat==='교통'?'#0EA5E9':p.cat==='맛집'?'#F59E0B':'#F472B6';
       const icon=L.divIcon({className:'',html:`<div style="background:${bg};color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(0,0,0,.25);border:2px solid #fff">${p.icon}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
       const m=L.marker([p.lat,p.lon],{icon}).addTo(mainMap);
       m.bindPopup(`<b style="font-size:13px">${p.name}</b><br><span style="font-size:11px;color:#64748B">${p.cat}</span>`);
       _poiLayers.push(m);
     });
-    toast('명소·공항 '+CQ_POI.length+'곳 표시','ok');
+    toast('명소·공항 '+_activePOI.length+'곳 표시','ok');
   }else{
     btn.style.cssText='';
     _poiLayers.forEach(l=>l.remove());_poiLayers=[];
   }
+}
+
+/* ═══ 여행지별 POI 동적 로드 ════════════════════════════════════ */
+const _CQ_KEYWORDS=/충칭|重庆|chongq/i;
+async function loadPlanPOI(dest){
+  _lastPoiDest=dest;
+  if(!dest||_CQ_KEYWORDS.test(dest)){
+    _activePOI=[...CQ_POI];renderPoiChips();return;
+  }
+  const cKey='poi_v1_'+dest;
+  try{
+    const c=localStorage.getItem(cKey);
+    if(c){_activePOI=JSON.parse(c);renderPoiChips();_updateDestCenter(_activePOI);return;}
+  }catch(e){}
+  toast('🌍 '+dest+' 명소 검색 중…');
+  try{
+    const gRes=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(dest)+'&format=json&limit=1&accept-language=ko');
+    const gData=await gRes.json();
+    if(!gData.length){toast(dest+' 위치를 찾을 수 없어요','err');_activePOI=[];renderPoiChips();return;}
+    const lat=parseFloat(gData[0].lat),lon=parseFloat(gData[0].lon);
+    _destCenter=[lat,lon];
+    const q=`[out:json][timeout:20];(node["tourism"~"attraction|museum|viewpoint|theme_park|gallery|artwork|zoo|aquarium"](around:25000,${lat},${lon});node["amenity"~"restaurant|cafe|bar"](around:8000,${lat},${lon});node["aeroway"="aerodrome"](around:100000,${lat},${lon});node["railway"="station"](around:15000,${lat},${lon});node["tourism"="hotel"](around:8000,${lat},${lon});node["amenity"="nightclub"](around:20000,${lat},${lon}););out tags 100;`;
+    const oRes=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
+    const oData=await oRes.json();
+    const catMap={
+      'tourism:attraction':{cat:'관광',icon:'🏛️'},'tourism:museum':{cat:'관광',icon:'🏺'},
+      'tourism:viewpoint':{cat:'관광',icon:'🌇'},'tourism:theme_park':{cat:'관광',icon:'🎡'},
+      'tourism:gallery':{cat:'관광',icon:'🎨'},'tourism:artwork':{cat:'관광',icon:'🗿'},
+      'tourism:zoo':{cat:'관광',icon:'🐾'},'tourism:aquarium':{cat:'관광',icon:'🐟'},
+      'tourism:hotel':{cat:'숙소',icon:'🏨'},
+      'amenity:restaurant':{cat:'맛집',icon:'🍴'},'amenity:cafe':{cat:'맛집',icon:'☕'},
+      'amenity:bar':{cat:'클럽',icon:'🍸'},'amenity:nightclub':{cat:'클럽',icon:'🎉'},
+      'aeroway:aerodrome':{cat:'공항',icon:'✈️'},
+      'railway:station':{cat:'교통',icon:'🚉'},
+    };
+    const seen=new Set(),pois=[];
+    for(const el of oData.elements||[]){
+      if(!el.tags||el.lat==null) continue;
+      const name=el.tags['name:ko']||el.tags['name:en']||el.tags.name;
+      if(!name||seen.has(name)) continue;
+      seen.add(name);
+      let meta={cat:'기타',icon:'📌'};
+      for(const k of ['tourism','amenity','aeroway','railway']){
+        if(el.tags[k]){const m=catMap[k+':'+el.tags[k]];if(m){meta=m;break;}}
+      }
+      pois.push({name,cat:meta.cat,icon:meta.icon,lat:el.lat,lon:el.lon});
+      if(pois.length>=100)break;
+    }
+    _activePOI=pois;
+    try{localStorage.setItem(cKey,JSON.stringify(pois));}catch(e){}
+    renderPoiChips();
+    toast('✅ '+dest+' 명소 '+pois.length+'곳 로드됨','ok');
+    if(mainMap&&pois.length)mainMap.setView(_destCenter,13);
+  }catch(e){toast('명소 로드 실패: 인터넷 확인','err');_activePOI=[];}
+}
+function _updateDestCenter(pois){
+  if(!pois.length)return;
+  const lat=pois.reduce((s,p)=>s+p.lat,0)/pois.length;
+  const lon=pois.reduce((s,p)=>s+p.lon,0)/pois.length;
+  _destCenter=[lat,lon];
 }
 
 /* ═══ localStorage 백업 ═══════════════════════════════════════ */
@@ -806,11 +869,7 @@ async function createPlan(){
     _lsSave(code,planData);
     subscribe(code);enterPlan(code);
     setTimeout(()=>{
-      document.getElementById('ep-name').value=planData.title;
-      document.getElementById('ep-desc').value='';
-      document.getElementById('ep-start').value=planData.startDate;
-      document.getElementById('ep-end').value=planData.endDate;
-      openModal('m-plan');
+      openPlanModal();
     },300);
   }catch(e){toast('생성 실패 — 인터넷 연결을 확인해주세요','err');}
 }
@@ -839,12 +898,22 @@ function copyInviteLink(){
 }
 
 /* ═══ 플랜 정보 ══════════════════════════════════════════════ */
+function openPlanModal(){
+  document.getElementById('ep-name').value=planData?.title||'';
+  document.getElementById('ep-dest').value=planData?.destination||'';
+  document.getElementById('ep-desc').value=planData?.description||'';
+  document.getElementById('ep-start').value=planData?.startDate||'';
+  document.getElementById('ep-end').value=planData?.endDate||'';
+  openModal('m-plan');
+}
 function savePlanInfo(){
   planData.title=document.getElementById('ep-name').value.trim()||'여행 플래너';
+  planData.destination=document.getElementById('ep-dest').value.trim();
   planData.description=document.getElementById('ep-desc').value.trim();
   planData.startDate=document.getElementById('ep-start').value;
   planData.endDate=document.getElementById('ep-end').value;
   save();renderAll();closeModal('m-plan');toast('저장됨','ok');
+  if(planData.destination!==_lastPoiDest) loadPlanPOI(planData.destination);
 }
 
 /* ═══ 날짜 CRUD ══════════════════════════════════════════════ */
@@ -946,6 +1015,7 @@ function reorderAct(did,aid,dir){
 /* ═══ 렌더링 ═════════════════════════════════════════════════ */
 function renderAll(){
   if(!planData) return;
+  if(planData.destination!==_lastPoiDest) loadPlanPOI(planData.destination);
   document.getElementById('ph-title').textContent=planData.title||'여행 플래너';
   if(planCode) saveRecent(planCode,planData.title);
   const s=planData.startDate,e=planData.endDate;
@@ -1038,7 +1108,7 @@ function renderBudget(){
 /* ═══ 지도 ═══════════════════════════════════════════════════ */
 function initMainMap(){
   if(mainMap) return;
-  mainMap=L.map('leafmap').setView(CQ,13);
+  mainMap=L.map('leafmap').setView(_destCenter,13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(mainMap);
 }
 function initMiniMap(){
